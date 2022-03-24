@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Anything outside of the RECOGNIZER element can be left untouched -->
+<CMD CMDVersion="1.1" xmlns="http://www.clarin.eu/cmd/"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.clarin.eu/cmd/ http://catalog.clarin.eu/ds/ComponentRegistry/rest/registry/profiles/clarin.eu:cr1:p_1430905751617/xsd">
+    <!-- See http://catalog.clarin.eu/ds/ComponentRegistry?registrySpace=published&itemId=clarin.eu:cr1:p_1430905751617 -->
+    <Header></Header>
+    <Resources>
+        <ResourceProxyList></ResourceProxyList>
+        <JournalFileProxyList></JournalFileProxyList>
+        <ResourceRelationList></ResourceRelationList>
+    </Resources>
+    <Components>
+        <RECOGNIZER>
+            <recognizer recognizerType="local" runLinux="./cmulab_elan_extension.sh" runMac="./cmulab_elan_extension.sh" runWin="cmd /c .\cmulab_elan_extension.bat"
+                    info="CMU Linguistic Annotation Backend">CMU Linguistic Annotation Backend</recognizer>
+            <!--<documentation icon16="MPG_logo_16.png">cmulab_elan_extension.html</documentation>-->
+            <documentation>cmulab_elan_extension.html</documentation>
+            <!--<documentation>https://github.com/zaidsheikh/allosaurus-elan/blob/dev/README.md</documentation>-->
+
+            <input level="basic" type="audio" optional="false"
+                    mimetypes="audio/x-wav" info="Input file (WAV)">source</input>
+
+            <input level="basic" type="tier" default="none"
+                    mimetypes="text/plain"
+                    info="Input tier to process">input_tier</input>
+
+            <textparam convoc="Phone-transcription Finetune-allosaurus Speaker-diarization"
+                    default="Phone-transcription" level="basic" info="">
+                cmulab_service</textparam>
+
+            <!--<textparam level="advanced" default="http://miami.lti.cs.cmu.edu:8088/"-->
+                    <!--info="CMULAB backend server URL">server_url</textparam>-->
+
+            <!--<textparam convoc="Yes No" default="No" level="advanced" info="Re-login?">relogin</textparam>-->
+
+            <output level="basic" type="tier" optional="false"
+                    mimetypes="text/xml"
+                    info="Output recognized text">output_tier</output>
+        </RECOGNIZER>
+    </Components>
+</CMD>

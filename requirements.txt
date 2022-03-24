@@ -1,0 +1,4 @@
+requests
+pydub
+pympi-ling
+PySimpleGUI
