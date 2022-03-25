@@ -1,9 +1,11 @@
 ## [CMU Linguistic Annotation Backend](https://github.com/neulab/cmulab/) plugin for [ELAN](https://archive.mpi.nl/tla/elan)
 
-This plugin is still a work in progress. Eventually it will allow ELAN users to invoke various services (translation, transcription, POS tagging etc.) provided by the CMU Linguistic Annotation Backend server
+This plugin is still a work in progress. Currently it allows users to do automatic speaker diarization and phone transcription using the [CMU Linguistic Annotation Backend](https://github.com/neulab/cmulab/) server APIs. Users can even upload data to fine-tune the pre-trained phone recognizer ([Allosaurus](https://github.com/xinjli/allosaurus))
 
 
 ### Setup
+
+Note: The plugin requires Python 3.
 
 #### Linux
 
