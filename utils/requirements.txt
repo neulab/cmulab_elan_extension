@@ -1,2 +1,1 @@
-pydub
 pympi-ling

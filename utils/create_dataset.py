@@ -1,7 +1,7 @@
 import os
 import argparse
 import pympi
-import pydub
+# import pydub
 from pathlib import Path
 import hashlib
 import shutil
@@ -44,23 +44,23 @@ def create_dataset_from_eaf_files(eaf_files, output_dir, tier_names=None, annota
         dst_json_file.write_text(json.dumps(transcriptions, indent=4, sort_keys=True, ensure_ascii=False))
 
 
-def create_dataset_from_eaf(eaf_file, output_dir, tier_name="Allosaurus"):
-    print(eaf_file)
-    print(output_dir)
-    print(tier_name)
-    output_dir_path = Path(output_dir)
-    output_dir_path.mkdir(parents=True, exist_ok=True)
-    input_eaf = pympi.Elan.Eaf(file_path=eaf_file)
-    audio_file_path = input_eaf.media_descriptors[0]["MEDIA_URL"][len("file://"):]
-    full_audio = pydub.AudioSegment.from_file(audio_file_path, format = 'wav')
-    for segment_id in input_eaf.tiers[tier_name][0]:
-        # eaf.get_parameters_for_tier(tier_name).get('ANNOTATOR')
-        start_id, end_id, transcription, _ = input_eaf.tiers[tier_name][0][segment_id]
-        start = input_eaf.timeslots[start_id]
-        end = input_eaf.timeslots[end_id]
-        clip = full_audio[start:end]
-        clip.export(output_dir_path / (segment_id + ".wav"), format = 'wav')
-        (output_dir_path / (segment_id + ".txt")).write_text(transcription)
+# def create_dataset_from_eaf(eaf_file, output_dir, tier_name="Allosaurus"):
+    # print(eaf_file)
+    # print(output_dir)
+    # print(tier_name)
+    # output_dir_path = Path(output_dir)
+    # output_dir_path.mkdir(parents=True, exist_ok=True)
+    # input_eaf = pympi.Elan.Eaf(file_path=eaf_file)
+    # audio_file_path = input_eaf.media_descriptors[0]["MEDIA_URL"][len("file://"):]
+    # full_audio = pydub.AudioSegment.from_file(audio_file_path, format = 'wav')
+    # for segment_id in input_eaf.tiers[tier_name][0]:
+        # # eaf.get_parameters_for_tier(tier_name).get('ANNOTATOR')
+        # start_id, end_id, transcription, _ = input_eaf.tiers[tier_name][0][segment_id]
+        # start = input_eaf.timeslots[start_id]
+        # end = input_eaf.timeslots[end_id]
+        # clip = full_audio[start:end]
+        # clip.export(output_dir_path / (segment_id + ".wav"), format = 'wav')
+        # (output_dir_path / (segment_id + ".txt")).write_text(transcription)
 
 
 if __name__ == "__main__":
@@ -70,4 +70,4 @@ if __name__ == "__main__":
     parser.add_argument('output_dir', type=str, help="output dir")
     parser.add_argument('--tier', type=str, default="Allosaurus", help="Tier containing phone transcriptions")
     args = parser.parse_args()
-    create_dataset_from_eaf(args.eaf_file, args.output_dir, args.tier)
+    # create_dataset_from_eaf(args.eaf_file, args.output_dir, args.tier)

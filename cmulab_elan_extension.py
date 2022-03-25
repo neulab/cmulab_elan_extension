@@ -20,6 +20,7 @@ from utils.create_dataset import create_dataset_from_eaf_files
 import PySimpleGUI as sg
 import webbrowser
 
+sg.theme("SystemDefaultForReal")
 
 AUTH_TOKEN_FILE = os.path.join(os.path.expanduser("~"), ".cmulab_elan")
 CMULAB_SERVER = "http://miami.lti.cs.cmu.edu:8088"
@@ -69,16 +70,11 @@ def get_params():
     return params
 
 
-def browser_login(server_url):
-    webbrowser.open(server_url + "/annotator/get_auth_token/")
-
-
 def get_auth_token(server_url):
     if os.path.exists(AUTH_TOKEN_FILE):
         with open(AUTH_TOKEN_FILE) as fin:
             auth_token = fin.read().strip()
     else:
-        # browser_login(server_url)
         layout = [[sg.Text('Click link below to get your access token')],
                   [sg.Text(server_url + "/annotator/get_auth_token/", text_color='blue', enable_events=True, key='-LINK-')],
                   [sg.Text("Please enter your access token here")], [sg.Input()], [sg.Button('OK')]]
@@ -87,9 +83,9 @@ def get_auth_token(server_url):
         while True:
             event, values = window.read()
             if event in (sg.WIN_CLOSED, 'Exit'):
-                break
+                sys.exit(1)
             elif event == '-LINK-':
-                webbrowser.open(window['-LINK-'].DisplayText)
+                webbrowser.open(window['-LINK-'].DisplayText, new=1)
             auth_token = values[0].strip()
             if auth_token:
                 break
@@ -119,7 +115,7 @@ def get_input_annotations(input_tier):
 
 
 
-def phone_transcription(server_url, auth_token, input_audio, annotations):
+def phone_transcription(server_url, auth_token, input_audio, annotations, output_tier):
     layout = [[sg.Text("Language code"), sg.Input(default_text="eng", key='lang_code')],
               [sg.Text("Pretrained model"), sg.Input(default_text="eng2102", key='pretrained_model')],
               [sg.Button('OK')]]
@@ -147,10 +143,10 @@ def phone_transcription(server_url, auth_token, input_audio, annotations):
         transcribed_annotations = json.loads(r.text)
         for annotation in transcribed_annotations:
             annotation["value"] = annotation["transcription"].replace(' ', '')
-        return transcribed_annotations
+        write_output(output_tier, transcribed_annotations, "Allosaurus")
 
 
-def finetune_allosaurus(server_url, auth_token, input_audio, annotations):
+def finetune_allosaurus(server_url, auth_token, input_audio, annotations, output_tier):
     layout = [[sg.Text("Language code"), sg.Input(default_text="eng", key='lang_code')],
               [sg.Text("Pretrained model"), sg.Input(default_text="eng2102", key='pretrained_model')],
               [sg.Text("Number of training epochs"), sg.Slider((0, 10), orientation='h', resolution=1, default_value=2, key='nepochs')],
@@ -204,6 +200,7 @@ def finetune_allosaurus(server_url, auth_token, input_audio, annotations):
     dataset_archive = shutil.make_archive(dataset_dir, 'zip', dataset_dir)
     shutil.copytree(tmpdirname.name, tmpdirname.name + "_copy") # TODO: delete this
     print("PROGRESS: 0.5 Fine-tuning allosaurus...", flush = True)
+    print(dataset_archive)
     with open(dataset_archive,'rb') as zip_file:
         files = {'file': zip_file}
         url = server_url + "/annotator/segment/1/annotate/4/"
@@ -221,11 +218,12 @@ def finetune_allosaurus(server_url, auth_token, input_audio, annotations):
             show_error_and_exit("Server error. Status code: " + str(r.status_code))
         json_response = json.loads(r.text)
         model_id = json_response[0]["new_model_id"]
-        sg.Popup("Fine-tuned model ID: " + model_id, title="New model ID")
-    return []
+        print("New model ID:")
+        print(model_id)
+        sg.Popup("Allosaurus fine-tuning finished successfully! Please click the 'Report' button to view logs and the new model ID")
 
 
-def speaker_diarization(server_url, auth_token, input_audio, annotations):
+def speaker_diarization(server_url, auth_token, input_audio, annotations, output_tier):
     if not annotations:
         show_error_and_exit("Please select an input tier containing a few sample annotations for each speaker")
     layout = [[sg.Text("Threshold"), sg.Slider((0, 1), orientation='h', resolution=0.01, default_value=0.45)],
@@ -265,15 +263,16 @@ def speaker_diarization(server_url, auth_token, input_audio, annotations):
                 "end": item[2],
                 "value": item[0]
             })
-        return transcribed_annotations
+        write_output(output_tier, transcribed_annotations, "Speaker-diarization")
 
 
-def write_output(output_tier_file, annotations):
+def write_output(output_tier_file, annotations, tier_name):
+    print("PROGRESS: 0.95 Preparing output tier", flush = True)
     with open(output_tier_file, 'w', encoding = 'utf-8') as output_tier:
         # Write document header.
         output_tier.write('<?xml version="1.0" encoding="UTF-8"?>\n')
         output_tier.write('<TIER xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ' +
-                          'xsi:noNamespaceSchemaLocation="file:avatech-tier.xsd" columns="Allosaurus">\n')
+                          'xsi:noNamespaceSchemaLocation="file:avatech-tier.xsd" columns="' + tier_name + '">\n')
         for annotation in annotations:
             output_tier.write('    <span start="%s" end="%s"><v>%s</v></span>\n' %
                               (annotation['start'], annotation['end'], annotation['value']))
@@ -290,7 +289,8 @@ def main():
     print("input_tier: " + input_tier)
     print("cmulab_service: " + cmulab_service)
 
-    server_url = get_server_url(params.get("server_url", "http://localhost:8088"))
+    server_url = params.get("server_url", "http://localhost:8088").strip().rstrip('/')
+    server_url = get_server_url(server_url)
 
     auth_token = get_auth_token(server_url)
 
@@ -298,17 +298,15 @@ def main():
     annotations = get_input_annotations(input_tier)
 
     if cmulab_service == "Phone-transcription":
-        output_annotations = phone_transcription(server_url, auth_token, input_audio, annotations)
+        phone_transcription(server_url, auth_token, input_audio, annotations, output_tier)
     elif cmulab_service == "Finetune-allosaurus":
-        output_annotations = finetune_allosaurus(server_url, auth_token, input_audio, annotations)
+        finetune_allosaurus(server_url, auth_token, input_audio, annotations, output_tier)
     elif cmulab_service == "Speaker-diarization":
-        output_annotations = speaker_diarization(server_url, auth_token, input_audio, annotations)
+        speaker_diarization(server_url, auth_token, input_audio, annotations, output_tier)
     else:
         print("RESULT: FAILED. Not supported!", flush = True)
         sys.exit(1)
 
-    print("PROGRESS: 0.95 Preparing output tier", flush = True)
-    write_output(output_tier, output_annotations)
     print('RESULT: DONE.', flush = True)
 
 
