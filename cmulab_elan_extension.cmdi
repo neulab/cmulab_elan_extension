@@ -29,8 +29,8 @@
                     default="Phone-transcription" level="basic" info="">
                 cmulab_service</textparam>
 
-            <!--<textparam level="advanced" default="http://miami.lti.cs.cmu.edu:8088/"-->
-                    <!--info="CMULAB backend server URL">server_url</textparam>-->
+            <textparam level="basic" default="http://miami.lti.cs.cmu.edu:8088/"
+                    info="CMULAB backend server URL">server_url</textparam>
 
             <!--<textparam convoc="Yes No" default="No" level="advanced" info="Re-login?">relogin</textparam>-->
 

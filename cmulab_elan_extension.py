@@ -15,7 +15,7 @@ import time
 import requests
 import json
 import traceback
-from utils.create_dataset import create_dataset_from_eaf
+from utils.create_dataset import create_dataset_from_eaf_files
 
 import PySimpleGUI as sg
 import webbrowser
@@ -23,6 +23,13 @@ import webbrowser
 
 AUTH_TOKEN_FILE = os.path.join(os.path.expanduser("~"), ".cmulab_elan")
 CMULAB_SERVER = "http://miami.lti.cs.cmu.edu:8088"
+
+
+def show_error_and_exit(msg):
+    sg.Popup(msg, title="ERROR")
+    sys.stderr.write("ERROR: " + msg + "\n")
+    print('RESULT: FAILED. ' + msg, flush = True)
+    sys.exit(1)
 
 
 def ping_server(server_url):
@@ -34,8 +41,7 @@ def ping_server(server_url):
     return status_check
 
 
-def get_server_url():
-    server_url = CMULAB_SERVER
+def get_server_url(server_url):
     status_check = ping_server(server_url)
     while not status_check:
         err_msg = "Error connecting to CMULAB server " + server_url
@@ -133,17 +139,11 @@ def phone_transcription(server_url, auth_token, input_audio, annotations):
             allosaurus_params = {"lang": lang_code, "model": pretrained_model}
             r = requests.post(url, files=files, data={"segments": json.dumps(annotations), "params": json.dumps(allosaurus_params)}, headers=headers)
         except:
-            err_msg = "Error connecting to CMULAB server " + server_url
-            sys.stderr.write(err_msg + "\n")
             traceback.print_exc()
-            sg.Popup(err_msg, title="ERROR")
-            print('RESULT: FAILED.', flush = True)
-            sys.exit(1)
+            show_error_and_exit("Error connecting to CMULAB server " + server_url)
         print("Response from CMULAB server " + server_url + ": " + r.text)
         if not r.ok:
-            sg.Popup("Server error, click the report button to view logs.", title="ERROR")
-            print('RESULT: FAILED.', flush = True)
-            sys.exit(1)
+            show_error_and_exit("Server error. Status code: " + str(r.status_code))
         transcribed_annotations = json.loads(r.text)
         for annotation in transcribed_annotations:
             annotation["value"] = annotation["transcription"].replace(' ', '')
@@ -151,18 +151,83 @@ def phone_transcription(server_url, auth_token, input_audio, annotations):
 
 
 def finetune_allosaurus(server_url, auth_token, input_audio, annotations):
-    layout = [[sg.Text(err_msg + "\nPlease enter new CMULAB server URL")], [sg.Input()], [sg.Button('OK')]]
-    window = sg.Window('CMULAB server URL', layout)
-    event, values = window.read()
-    server_url = values[0].strip().rstrip('/')
+    layout = [[sg.Text("Language code"), sg.Input(default_text="eng", key='lang_code')],
+              [sg.Text("Pretrained model"), sg.Input(default_text="eng2102", key='pretrained_model')],
+              [sg.Text("Number of training epochs"), sg.Slider((0, 10), orientation='h', resolution=1, default_value=2, key='nepochs')],
+              [sg.Text("Select EAF files containing phone transcriptions for fine-tuning")],
+              [sg.LBox([], size=(100,10), key='-FILESLB-')],
+              [sg.Input(visible=False, enable_events=True, key='-IN-'), sg.FilesBrowse(file_types=(("EAF files", "*.eaf"),)), sg.Button('Clear')],
+              [sg.Text("Tier name (leave blank to use all tiers)"), sg.Input(key='tier_name')],
+              [sg.Text("Annotator (leave blank to use all tiers)"), sg.Input(key='annotator')],
+              [sg.Button('Go'), sg.Button('Exit')]]
+
+    window = sg.Window('Finetune Allosaurus', layout)
+
+    eaf_files = []
+    while True:             # Event Loop
+        event, values = window.read()
+        # When choice has been made, then fill in the listbox with the choices
+        if event == '-IN-':
+            eaf_files = values['-IN-'].split(';')
+            window['-FILESLB-'].Update(eaf_files)
+        if event == 'Clear':
+            eaf_files = []
+            window['-FILESLB-'].Update([])
+        if event == 'Go':
+            lang_code = values["lang_code"].strip().lower()
+            pretrained_model = values["pretrained_model"].strip().lower()
+            tier_name = values["tier_name"].strip()
+            annotator = values["annotator"].strip()
+            nepochs = int(values["nepochs"])
+            break
+        if event in (sg.WIN_CLOSED, 'Exit'):
+            sys.exit(1)
     window.close()
+    print(' '.join([lang_code, pretrained_model, tier_name, annotator]))
+    print('\n'.join(eaf_files))
+
+    if not eaf_files:
+        show_error_and_exit("No EAF files selected for finetuning!")
+    if lang_code == "ipa":
+        show_error_and_exit("'ipa' lang code is not supported by allosaurus for fine-tuning!")
+    print("PROGRESS: 0.1 Generating dataset...", flush = True)
+    tmpdirname = tempfile.TemporaryDirectory()
+    print('creating temporary directory', tmpdirname)
+    dataset_dir = os.path.join(tmpdirname.name, "dataset")
+    train_dir = os.path.join(dataset_dir, "train")
+    validate_dir = os.path.join(dataset_dir, "validate")
+
+    tier_names = [t.strip() for t in tier_name.split(',') if t.strip()]
+    annotators = [a.strip() for a in annotator.split(',') if a.strip()]
+    create_dataset_from_eaf_files(eaf_files, train_dir, tier_names, annotators)
+    # shutil.copytree(train_dir, validate_dir)
+    dataset_archive = shutil.make_archive(dataset_dir, 'zip', dataset_dir)
+    shutil.copytree(tmpdirname.name, tmpdirname.name + "_copy") # TODO: delete this
+    print("PROGRESS: 0.5 Fine-tuning allosaurus...", flush = True)
+    with open(dataset_archive,'rb') as zip_file:
+        files = {'file': zip_file}
+        url = server_url + "/annotator/segment/1/annotate/4/"
+        try:
+            allosaurus_params = {"service": "batch_finetune", "lang": lang_code, "epoch": nepochs, "pretrained_model": pretrained_model}
+            headers = {}
+            if auth_token:
+                headers["Authorization"] = auth_token.strip()
+            r = requests.post(url, files=files, data={"params": json.dumps(allosaurus_params)}, headers=headers)
+        except:
+            traceback.print_exc()
+            show_error_and_exit("Error connecting to CMULAB server " + server_url)
+        print("Response from CMULAB server " + server_url + ": " + r.text)
+        if not r.ok:
+            show_error_and_exit("Server error. Status code: " + str(r.status_code))
+        json_response = json.loads(r.text)
+        model_id = json_response[0]["new_model_id"]
+        sg.Popup("Fine-tuned model ID: " + model_id, title="New model ID")
+    return []
 
 
 def speaker_diarization(server_url, auth_token, input_audio, annotations):
     if not annotations:
-        sg.Popup("Please select an input tier containing a few sample annotations for each speaker", title="ERROR")
-        print('RESULT: FAILED.', flush = True)
-        sys.exit(1)
+        show_error_and_exit("Please select an input tier containing a few sample annotations for each speaker")
     layout = [[sg.Text("Threshold"), sg.Slider((0, 1), orientation='h', resolution=0.01, default_value=0.45)],
               [sg.Button('OK')]]
     window = sg.Window('Diarization parameters', layout)
@@ -187,17 +252,11 @@ def speaker_diarization(server_url, auth_token, input_audio, annotations):
                               data={"segments": json.dumps(annotations), "params": json.dumps(request_params)},
                               headers=headers)
         except:
-            err_msg = "Error connecting to CMULAB server " + server_url
-            sys.stderr.write(err_msg + "\n")
             traceback.print_exc()
-            sg.Popup(err_msg, title="ERROR")
-            print('RESULT: FAILED.', flush = True)
-            sys.exit(1)
+            show_error_and_exit("Error connecting to CMULAB server " + server_url)
         print("Response from CMULAB server " + server_url + ": " + r.text)
         if not r.ok:
-            sg.Popup("Server error, click the report button to view logs.", title="ERROR")
-            print('RESULT: FAILED.', flush = True)
-            sys.exit(1)
+            show_error_and_exit("Server error. Status code: " + str(r.status_code))
         response_data = json.loads(r.text)
         transcribed_annotations = []
         for item in response_data:
@@ -231,7 +290,7 @@ def main():
     print("input_tier: " + input_tier)
     print("cmulab_service: " + cmulab_service)
 
-    server_url = get_server_url()
+    server_url = get_server_url(params.get("server_url", "http://localhost:8088"))
 
     auth_token = get_auth_token(server_url)
 
