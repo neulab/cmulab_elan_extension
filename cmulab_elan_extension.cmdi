@@ -25,8 +25,8 @@
                     mimetypes="text/plain"
                     info="Input tier to process">input_tier</input>
 
-            <textparam convoc="Phone-transcription Finetune-allosaurus Speaker-diarization"
-                    default="Phone-transcription" level="basic" info="">
+            <textparam convoc="run-phone-transcription train-phone-transcription run-speaker-diarization"
+                    default="run-phone-transcription" level="basic" info="">
                 cmulab_service</textparam>
 
             <textparam level="basic" default="http://miami.lti.cs.cmu.edu:8088/"

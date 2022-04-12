@@ -288,7 +288,7 @@ def main():
     input_audio = params.get('source')
     input_tier = params.get('input_tier', 'none specified')
     output_tier = params.get('output_tier')
-    cmulab_service = params.get('cmulab_service', 'Phone-transcription')
+    cmulab_service = params.get('cmulab_service', 'run-phone-transcription')
     print("input_tier: " + input_tier)
     print("cmulab_service: " + cmulab_service)
 
@@ -300,11 +300,11 @@ def main():
     print("PROGRESS: 0.1 Loading annotations from input tier", flush = True)
     annotations = get_input_annotations(input_tier)
 
-    if cmulab_service == "Phone-transcription":
+    if cmulab_service == "run-phone-transcription":
         phone_transcription(server_url, auth_token, input_audio, annotations, output_tier)
-    elif cmulab_service == "Finetune-allosaurus":
+    elif cmulab_service == "train-phone-transcription":
         finetune_allosaurus(server_url, auth_token, input_audio, annotations, output_tier)
-    elif cmulab_service == "Speaker-diarization":
+    elif cmulab_service == "run-speaker-diarization":
         speaker_diarization(server_url, auth_token, input_audio, annotations, output_tier)
     else:
         print("RESULT: FAILED. Not supported!", flush = True)
