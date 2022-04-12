@@ -209,6 +209,7 @@ def finetune_allosaurus(server_url, auth_token, input_audio, annotations, output
             headers = {}
             if auth_token:
                 headers["Authorization"] = auth_token.strip()
+                print("Auth token: " + auth_token)
             r = requests.post(url, files=files, data={"params": json.dumps(allosaurus_params)}, headers=headers)
         except:
             traceback.print_exc()
@@ -220,7 +221,9 @@ def finetune_allosaurus(server_url, auth_token, input_audio, annotations, output
         model_id = json_response[0]["new_model_id"]
         print("New model ID:")
         print(model_id)
-        sg.Popup("Allosaurus fine-tuning finished successfully! Please click the 'Report' button to view logs and the new model ID")
+        # sg.Popup("Allosaurus fine-tuning finished successfully! Please click the 'Report' button to view logs and the new model ID")
+        webbrowser.open(json_response[0]["status_url"], new=1)
+
 
 
 def speaker_diarization(server_url, auth_token, input_audio, annotations, output_tier):
