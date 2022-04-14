@@ -19,11 +19,12 @@ from utils.create_dataset import create_dataset_from_eaf_files
 
 import PySimpleGUI as sg
 import webbrowser
+from urllib.parse import urlparse
+
 
 sg.theme("SystemDefaultForReal")
 
 AUTH_TOKEN_FILE = os.path.join(os.path.expanduser("~"), ".cmulab_elan")
-CMULAB_SERVER = "http://miami.lti.cs.cmu.edu:8088"
 
 
 def show_error_and_exit(msg):
@@ -71,10 +72,17 @@ def get_params():
 
 
 def get_auth_token(server_url):
+    netloc = urlparse(server_url).netloc
+    auth_token = ""
     if os.path.exists(AUTH_TOKEN_FILE):
-        with open(AUTH_TOKEN_FILE) as fin:
-            auth_token = fin.read().strip()
-    else:
+        # token file valid only if it was created within the last 1 hour
+        if (time.time() - os.path.getmtime(AUTH_TOKEN_FILE)) < 3600:
+            with open(AUTH_TOKEN_FILE) as fin:
+                # format: netloc <TAB> auth_token
+                columns = fin.readline().strip().split('\t')
+                if len(columns) == 2 and columns[0].strip() == netloc:
+                    auth_token = columns[1].strip()
+    if not auth_token:
         layout = [[sg.Text('Click link below to get your access token')],
                   [sg.Text(server_url + "/annotator/get_auth_token/", text_color='blue', enable_events=True, key='-LINK-')],
                   [sg.Text("Please enter your access token here")], [sg.Input()], [sg.Button('OK')]]
@@ -90,8 +98,8 @@ def get_auth_token(server_url):
             if auth_token:
                 break
         window.close()
-    with open(AUTH_TOKEN_FILE, 'w') as fout:
-        fout.write(auth_token)
+        with open(AUTH_TOKEN_FILE, 'w') as fout:
+            fout.write(netloc + '\t' + auth_token)
     return auth_token
 
 
