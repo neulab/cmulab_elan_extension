@@ -8,6 +8,12 @@
 export LC_ALL="en_US.UTF-8"
 export PYTHONIOENCODING="utf-8"
 
+which python3
+python3 --version
+python3 -c 'import tkinter; tcl = tkinter.Tcl(); print(tcl.call("info", "patchlevel"))'
+python3 -c 'import tkinter; root = tkinter.Tk(); print(root.tk.call("info", "patchlevel"))'
+
+
 # change to cmulab_elan_extension dir
 cd "$(dirname "$0")"
 

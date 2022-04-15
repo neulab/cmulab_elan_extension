@@ -141,6 +141,7 @@ def phone_transcription(server_url, auth_token, input_audio, annotations, output
             if auth_token:
                 headers["Authorization"] = auth_token
             allosaurus_params = {"lang": lang_code, "model": pretrained_model}
+            print("PROGRESS: 0.5 Waiting for response from server", flush = True)
             r = requests.post(url, files=files, data={"segments": json.dumps(annotations), "params": json.dumps(allosaurus_params)}, headers=headers)
         except:
             traceback.print_exc()
@@ -218,6 +219,7 @@ def finetune_allosaurus(server_url, auth_token, input_audio, annotations, output
             if auth_token:
                 headers["Authorization"] = auth_token.strip()
                 print("Auth token: " + auth_token)
+            print("PROGRESS: 0.5 Waiting for response from server", flush = True)
             r = requests.post(url, files=files, data={"params": json.dumps(allosaurus_params)}, headers=headers)
         except:
             traceback.print_exc()
@@ -258,6 +260,7 @@ def speaker_diarization(server_url, auth_token, input_audio, annotations, output
             print(json.dumps(annotations, indent=4))
             print(json.dumps(request_params, indent=4))
             print(json.dumps(headers, indent=4))
+            print("PROGRESS: 0.5 Waiting for response from server", flush = True)
             r = requests.post(url, files=files,
                               data={"segments": json.dumps(annotations), "params": json.dumps(request_params)},
                               headers=headers)
@@ -292,6 +295,7 @@ def write_output(output_tier_file, annotations, tier_name):
 
 
 def main():
+    print("PROGRESS: 0.1 Reading parameters", flush = True)
     params = get_params()
 
     input_audio = params.get('source')
@@ -302,11 +306,13 @@ def main():
     print("cmulab_service: " + cmulab_service)
 
     server_url = params.get("server_url", "http://localhost:8088").strip().rstrip('/')
+    print("PROGRESS: 0.2 Connecting to CMULAB server", flush = True)
     server_url = get_server_url(server_url)
 
+    print("PROGRESS: 0.3 Getting authorization token", flush = True)
     auth_token = get_auth_token(server_url)
 
-    print("PROGRESS: 0.1 Loading annotations from input tier", flush = True)
+    print("PROGRESS: 0.4 Loading annotations from input tier", flush = True)
     annotations = get_input_annotations(input_tier)
 
     if cmulab_service == "run-phone-transcription":
