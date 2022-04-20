@@ -42,6 +42,8 @@ Start ELAN with the provided test audio file
 Switch to the "Recognizers" tab and then select "CMU Linguistic Annotation Backend" from the Recognizer dropdown list at the top and then click the "Start" button.
 If this is your first time using this plugin, you will be prompted to login to the [CMULAB backend server](https://github.com/neulab/cmulab) and get an access token (you can create an account or simply login with an existing Google account).
 
+More detailed instructions for each specific service (phone transcription, diarization etc.) can be found [here](cmulab_services.md)
+
 -----
 
 **Note:** if the "Parameters" section in the "Recognizers" tab is too small, you can pop it out as a separate window by clicking the ![image](https://user-images.githubusercontent.com/2358298/164206178-c3aabfac-bf2f-4eb5-9837-f4623c4c4a69.png)
