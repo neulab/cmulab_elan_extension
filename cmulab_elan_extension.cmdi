@@ -15,7 +15,7 @@
             <recognizer recognizerType="local" runLinux="bash -il ./cmulab_elan_extension.sh" runMac="bash -il ./cmulab_elan_extension.sh" runWin="cmd /c .\cmulab_elan_extension.bat"
                     info="CMU Linguistic Annotation Backend">CMU Linguistic Annotation Backend</recognizer>
             <!--<documentation icon16="MPG_logo_16.png">cmulab_elan_extension.html</documentation>-->
-            <documentation>cmulab_elan_extension.html</documentation>
+            <documentation>cmulab_services.md</documentation>
             <!--<documentation>https://github.com/zaidsheikh/allosaurus-elan/blob/dev/README.md</documentation>-->
 
             <input level="basic" type="audio" optional="false"
