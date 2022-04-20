@@ -239,7 +239,8 @@ def finetune_allosaurus(server_url, auth_token, input_audio, annotations, output
 
 def speaker_diarization(server_url, auth_token, input_audio, annotations, output_tier):
     if not annotations:
-        show_error_and_exit("Please select an input tier containing a few sample annotations for each speaker")
+        show_error_and_exit("In the parameters section, please choose an input tier containing a few speaker annotations.\n"
+                            "The model will learn from these example annotations and annotate the rest of the audio.")
     layout = [[sg.Text("Threshold"), sg.Slider((0, 1), orientation='h', resolution=0.01, default_value=0.45)],
               [sg.Button('OK')]]
     window = sg.Window('Diarization parameters', layout)
