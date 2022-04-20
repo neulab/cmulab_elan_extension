@@ -23,6 +23,8 @@ tar xzf ELAN-XX_linux.tar.gz
 2. Download this [zip file](https://github.com/zaidsheikh/cmulab_elan_extension/archive/refs/heads/main.zip) and unzip it. You should see a folder named `cmulab_elan_extension-main` containing the contents of this repo.
 3. Right-click `ELAN_XX` and click "Show Package Contents", then copy your `cmulab_elan_extension-main` folder into `ELAN_XX.app/Contents/app/extensions`.
 
+Note: The built-in Tk GUI library in Apple-supplied Python 3 in some macOS versions (such as macOS 12 Monterey) have bugs that might cause dialog boxes to not display properly. In that case please install the latest python from [python.org](https://www.python.org/downloads/).
+
 
 #### Windows
 
@@ -35,9 +37,14 @@ tar xzf ELAN-XX_linux.tar.gz
 
 Start ELAN with the provided test audio file
 
-`ELAN_6-1/bin/ELAN allosaurus-elan/test/allosaurus.wav &`
+`ELAN_6-3/bin/ELAN allosaurus-elan/test/allosaurus.wav &`
 
 Switch to the "Recognizers" tab and then select "CMU Linguistic Annotation Backend" from the Recognizer dropdown list at the top and then click the "Start" button.
 If this is your first time using this plugin, you will be prompted to login to the [CMULAB backend server](https://github.com/neulab/cmulab) and get an access token (you can create an account or simply login with an existing Google account).
 
-![image](https://user-images.githubusercontent.com/2358298/160126327-75f80d58-e490-4f23-98fd-716267364ea4.png)
+-----
+
+**Note:** if the "Parameters" section in the "Recognizers" tab is too small, you can pop it out as a separate window by clicking the ![image](https://user-images.githubusercontent.com/2358298/164206178-c3aabfac-bf2f-4eb5-9837-f4623c4c4a69.png)
+ button below it or by dragging the section border ![image](https://user-images.githubusercontent.com/2358298/164206629-0e1ce212-4690-4c17-9ee8-060414a9242e.png) to re-size it. See the highlighted areas in the screenshot below:
+
+![160126327-75f80d58-e490-4f23-98fd-716267364ea4](https://user-images.githubusercontent.com/2358298/164206810-e2d973ab-25df-4490-853e-35d3db49afd5.png)
