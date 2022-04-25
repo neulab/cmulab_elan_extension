@@ -71,6 +71,17 @@ def get_params():
     return params
 
 
+def check_auth_token(auth_token, server_url):
+    try:
+        headers = {"Authorization": auth_token.strip()}
+        status_check = requests.get(server_url.rstrip('/') + "/annotator/check_auth_token/", headers=headers)
+        return True if status_check else False
+    except:
+        traceback.print_exc()
+        return False
+
+
+
 def get_auth_token(server_url):
     netloc = urlparse(server_url).netloc
     auth_token = ""
@@ -82,6 +93,8 @@ def get_auth_token(server_url):
                 columns = fin.readline().strip().split('\t')
                 if len(columns) == 2 and columns[0].strip() == netloc:
                     auth_token = columns[1].strip()
+                if not check_auth_token(auth_token, server_url):
+                    auth_token = ""
     if not auth_token:
         layout = [[sg.Text('Click link below to get your access token')],
                   [sg.Text(server_url + "/annotator/get_auth_token/", text_color='blue', enable_events=True, key='-LINK-')],
@@ -95,7 +108,7 @@ def get_auth_token(server_url):
             elif event == '-LINK-':
                 webbrowser.open(window['-LINK-'].DisplayText, new=1)
             auth_token = values[0].strip()
-            if auth_token:
+            if auth_token and check_auth_token(auth_token, server_url):
                 break
         window.close()
         with open(AUTH_TOKEN_FILE, 'w') as fout:
