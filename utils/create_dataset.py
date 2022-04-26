@@ -10,13 +10,25 @@ from collections import defaultdict
 
 
 def create_dataset_from_eaf_files(eaf_files, output_dir, tier_names=None, annotators=None):
+    print("Selected EAF files:")
+    for eaf_file in eaf_files:
+        print(eaf_file)
+    if tier_names:
+        print("Tiers: " + ', '.join(tier_names))
+    if annotators:
+        print("Annotators: " + ', '.join(annotators))
     output_dir_path = Path(output_dir)
     output_dir_path.mkdir(parents=True, exist_ok=True)
 
+    transcriptions = defaultdict(list)
     for eaf_file in eaf_files:
         input_eaf = pympi.Elan.Eaf(file_path=eaf_file)
         audio_file_path = input_eaf.media_descriptors[0]["MEDIA_URL"][len("file://"):]
         file_extension = os.path.splitext(audio_file_path)[1]
+
+        if not os.path.exists(audio_file_path):
+            print(f"ERROR: {audio_file_path} does not exist, ignorning {eaf_file}")
+            continue
 
         with open(audio_file_path, "rb") as f:
             filedata = f.read() # read file as bytes
@@ -31,17 +43,29 @@ def create_dataset_from_eaf_files(eaf_files, output_dir, tier_names=None, annota
         if os.path.exists(dst_json_file):
             transcriptions = json.loads(dst_json_file.read_text())
 
+        usable_tiers_found = False
         for tier_name in input_eaf.get_tier_names():
             if tier_names and tier_name not in tier_names:
                 continue
             annotator = input_eaf.get_parameters_for_tier(tier_name).get("ANNOTATOR")
             if annotators and annotator not in annotators:
                 continue
+            segment_count = 0
             for start, end, transcription in input_eaf.get_annotation_data_for_tier(tier_name):
                 if transcription.strip():
                     transcriptions[f"{start}-{end}"].append(transcription.strip())
+                    segment_count = segment_count + 1
+                    usable_tiers_found = True
+            if segment_count:
+                print(f"Found {segment_count} annotated segments in tier '{tier_name}' of {os.path.basename(eaf_file)}...")
+        if not usable_tiers_found:
+            print(f"WARNING: No annotated segments found in {os.path.basename(eaf_file)}")
 
         dst_json_file.write_text(json.dumps(transcriptions, indent=4, sort_keys=True, ensure_ascii=False))
+    if not transcriptions:
+        print(f"ERROR: No annotated segments found in the selected eaf files")
+        return False
+    return True
 
 
 # def create_dataset_from_eaf(eaf_file, output_dir, tier_name="Allosaurus"):

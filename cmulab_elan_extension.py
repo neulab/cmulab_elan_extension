@@ -217,10 +217,12 @@ def finetune_allosaurus(server_url, auth_token, input_audio, annotations, output
 
     tier_names = [t.strip() for t in tier_name.split(',') if t.strip()]
     annotators = [a.strip() for a in annotator.split(',') if a.strip()]
-    create_dataset_from_eaf_files(eaf_files, train_dir, tier_names, annotators)
+    result = create_dataset_from_eaf_files(eaf_files, train_dir, tier_names, annotators)
+    if not result:
+        show_error_and_exit("Couldn't create dataset for fine-tuning. Please check the selected EAF files.")
     # shutil.copytree(train_dir, validate_dir)
     dataset_archive = shutil.make_archive(dataset_dir, 'zip', dataset_dir)
-    shutil.copytree(tmpdirname.name, tmpdirname.name + "_copy") # TODO: delete this
+    # shutil.copytree(tmpdirname.name, tmpdirname.name + "_copy")
     print("PROGRESS: 0.5 Fine-tuning allosaurus...", flush = True)
     print(dataset_archive)
     with open(dataset_archive,'rb') as zip_file:
