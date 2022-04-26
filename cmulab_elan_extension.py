@@ -153,7 +153,7 @@ def phone_transcription(server_url, auth_token, input_audio, annotations, output
             headers = {}
             if auth_token:
                 headers["Authorization"] = auth_token
-            allosaurus_params = {"lang": lang_code, "model": pretrained_model}
+            allosaurus_params = {"service": "phone_transcription", "lang": lang_code, "model": pretrained_model}
             print("PROGRESS: 0.5 Waiting for response from server", flush = True)
             r = requests.post(url, files=files, data={"segments": json.dumps(annotations), "params": json.dumps(allosaurus_params)}, headers=headers)
         except:
