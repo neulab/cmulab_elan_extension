@@ -44,6 +44,8 @@ If this is your first time using this plugin, you will be prompted to login to t
 
 More detailed instructions for each specific service (phone transcription, diarization etc.) can be found [here](cmulab_services.md)
 
+https://user-images.githubusercontent.com/2358298/165535030-1548fd36-53d2-4ac6-b815-ae6c742ab88b.mp4
+
 -----
 
 **Note:** if the "Parameters" section in the "Recognizers" tab is too small, you can pop it out as a separate window by clicking the ![image](https://user-images.githubusercontent.com/2358298/164206178-c3aabfac-bf2f-4eb5-9837-f4623c4c4a69.png)
