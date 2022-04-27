@@ -248,6 +248,8 @@ def finetune_allosaurus(server_url, auth_token, input_audio, annotations, output
         print(model_id)
         # sg.Popup("Allosaurus fine-tuning finished successfully! Please click the 'Report' button to view logs and the new model ID")
         webbrowser.open(server_url + json_response[0]["status_url"], new=1)
+        webbrowser.open(server_url + "/annotator/upload/#models")
+        print("Please visit " + json_response[0]["models_url"] + " to see list of all fine-tuned models.")
         time.sleep(1)
 
 
