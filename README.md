@@ -32,6 +32,15 @@ Note: The built-in Tk GUI library in Apple-supplied Python 3 in some macOS versi
 2. [Download a copy of this repo](https://github.com/zaidsheikh/cmulab_elan_extension/archive/refs/heads/main.zip) and unzip it. Copy the `cmulab_elan_extension-main/` folder into ELAN's extensions dir (`ELAN-XX/app/extensions/`).
 3. Install [Python 3](https://www.python.org/downloads/) if it isn't already installed.
 
+#### Troubleshooting
+
+If the extension is not visible in the "Recognizers" tab or doesn't run after following the above instructions, please make sure that the contents of the zip file are extracted to:
+
+`ELAN-6-2/app/extensions/cmulab_elan_extension-main/` rather than:
+
+`ELAN-6-2/app/extensions/cmulab_elan_extension-main/cmulab_elan_extension-main/`
+
+Also the downloaded `cmulab_elan_extension-main.zip` should be removed from the extensions directory `ELAN-6-2/app/extensions/`, otherwise ELAN tries to load the zip file rather than the extracted `cmulab_elan_extension-main/` folder.
 
 ### Instructions
 
