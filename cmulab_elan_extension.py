@@ -138,12 +138,21 @@ def get_input_annotations(input_tier):
 
 def phone_transcription(server_url, auth_token, input_audio, annotations, output_tier):
     layout = [[sg.Text("Language code"), sg.Input(default_text="eng", key='lang_code')],
-              [sg.Text("Pretrained model"), sg.Input(default_text="eng2102", key='pretrained_model')],
-              [sg.Button('OK')]]
+              [sg.Text("Pretrained model"), sg.Input(default_text="uni2005", key='pretrained_model')],
+              [sg.Text('Click link below to view available models and languages:')],
+              [sg.Text(server_url + "/annotator/get_allosaurus_models/", text_color='blue', enable_events=True, key='-LINK-')],
+              [sg.OK()]]
     window = sg.Window('Allosaurus parameters', layout)
-    event, values = window.read()
-    lang_code = values["lang_code"].strip().lower()
-    pretrained_model = values["pretrained_model"].strip().lower()
+    while True:
+        event, values = window.read()
+        if event in (sg.WIN_CLOSED, 'Exit'):
+            sys.exit(1)
+        elif event == '-LINK-':
+            webbrowser.open(window['-LINK-'].DisplayText, new=1)
+        elif event == 'OK':
+            lang_code = values["lang_code"].strip().lower()
+            pretrained_model = values["pretrained_model"].strip().lower()
+            break
     window.close()
 
     with open(input_audio,'rb') as audio_file:
@@ -169,8 +178,10 @@ def phone_transcription(server_url, auth_token, input_audio, annotations, output
 
 
 def finetune_allosaurus(server_url, auth_token, input_audio, annotations, output_tier):
-    layout = [[sg.Text("Language code"), sg.Input(default_text="eng", key='lang_code')],
-              [sg.Text("Pretrained model"), sg.Input(default_text="eng2102", key='pretrained_model')],
+    layout = [[sg.Text('List of available models and languages:')],
+              [sg.Text(server_url + "/annotator/get_allosaurus_models/", text_color='blue', enable_events=True, key='-LINK-')],
+              [sg.Text("Language code"), sg.Input(default_text="eng", key='lang_code')],
+              [sg.Text("Pretrained model"), sg.Input(default_text="uni2005", key='pretrained_model')],
               [sg.Text("Number of training epochs"), sg.Slider((0, 10), orientation='h', resolution=1, default_value=2, key='nepochs')],
               [sg.Text("Select EAF files containing phone transcriptions for fine-tuning")],
               [sg.LBox([], size=(100,10), key='-FILESLB-')],
@@ -191,6 +202,8 @@ def finetune_allosaurus(server_url, auth_token, input_audio, annotations, output
         if event == 'Clear':
             eaf_files = []
             window['-FILESLB-'].Update([])
+        if event == '-LINK-':
+            webbrowser.open(window['-LINK-'].DisplayText, new=1)
         if event == 'Go':
             lang_code = values["lang_code"].strip().lower()
             pretrained_model = values["pretrained_model"].strip().lower()
