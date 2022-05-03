@@ -174,7 +174,7 @@ def phone_transcription(server_url, auth_token, input_audio, annotations, output
         transcribed_annotations = json.loads(r.text)
         for annotation in transcribed_annotations:
             annotation["value"] = annotation["transcription"].replace(' ', '')
-        write_output(output_tier, transcribed_annotations, "Allosaurus")
+        write_output(output_tier, transcribed_annotations, '-'.join(["phone", pretrained_model, lang_code]))
 
 
 def finetune_allosaurus(server_url, auth_token, input_audio, annotations, output_tier):
