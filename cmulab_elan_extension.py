@@ -20,6 +20,7 @@ from utils.create_dataset import create_dataset_from_eaf_files
 import PySimpleGUI as sg
 import webbrowser
 from urllib.parse import urlparse
+from pathlib import Path
 
 
 sg.theme("SystemDefaultForReal")
@@ -137,7 +138,7 @@ def get_input_annotations(input_tier):
 
 
 def phone_transcription(server_url, auth_token, input_audio, annotations, output_tier):
-    layout = [[sg.Text("Language code"), sg.Input(default_text="eng", key='lang_code')],
+    layout = [[sg.Text("Language code (or file containing list of phones)"), sg.Input(default_text="eng", key='lang_code')],
               [sg.Text("Pretrained model"), sg.Input(default_text="uni2005", key='pretrained_model')],
               [sg.Text('Click link below to view available models and languages:')],
               [sg.Text(server_url + "/annotator/get_allosaurus_models/", text_color='blue', enable_events=True, key='-LINK-')],
@@ -150,7 +151,9 @@ def phone_transcription(server_url, auth_token, input_audio, annotations, output
         elif event == '-LINK-':
             webbrowser.open(window['-LINK-'].DisplayText, new=1)
         elif event == 'OK':
-            lang_code = values["lang_code"].strip().lower()
+            lang_code = values["lang_code"].strip()
+            if Path(lang_code).exists():
+                lang_code = ' '.join(set(p.strip() for p in Path(lang_code).read_text().strip().split()))
             pretrained_model = values["pretrained_model"].strip().lower()
             break
     window.close()
@@ -174,13 +177,13 @@ def phone_transcription(server_url, auth_token, input_audio, annotations, output
         transcribed_annotations = json.loads(r.text)
         for annotation in transcribed_annotations:
             annotation["value"] = annotation["transcription"].replace(' ', '')
-        write_output(output_tier, transcribed_annotations, '-'.join(["phone", pretrained_model, lang_code]))
+        write_output(output_tier, transcribed_annotations, "allosaurus-" + pretrained_model)
 
 
 def finetune_allosaurus(server_url, auth_token, input_audio, annotations, output_tier):
     layout = [[sg.Text('List of available models and languages:')],
               [sg.Text(server_url + "/annotator/get_allosaurus_models/", text_color='blue', enable_events=True, key='-LINK-')],
-              [sg.Text("Language code"), sg.Input(default_text="eng", key='lang_code')],
+              [sg.Text("Language code (or file containing list of phones):"), sg.Input(default_text="eng", key='lang_code')],
               [sg.Text("Pretrained model"), sg.Input(default_text="uni2005", key='pretrained_model')],
               [sg.Text("Number of training epochs"), sg.Slider((0, 10), orientation='h', resolution=1, default_value=2, key='nepochs')],
               [sg.Text("Select EAF files containing phone transcriptions for fine-tuning")],
@@ -205,7 +208,9 @@ def finetune_allosaurus(server_url, auth_token, input_audio, annotations, output
         if event == '-LINK-':
             webbrowser.open(window['-LINK-'].DisplayText, new=1)
         if event == 'Go':
-            lang_code = values["lang_code"].strip().lower()
+            lang_code = values["lang_code"].strip()
+            if Path(lang_code).exists():
+                lang_code = ' '.join(set(p.strip() for p in Path(lang_code).read_text().strip().split()))
             pretrained_model = values["pretrained_model"].strip().lower()
             tier_name = values["tier_name"].strip()
             annotator = values["annotator"].strip()
