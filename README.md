@@ -44,9 +44,9 @@ Also the downloaded `cmulab_elan_extension-main.zip` should be removed from the 
 
 ### Instructions
 
-Start ELAN with the provided test audio file
+Start ELAN with the provided [test audio file](https://github.com/neulab/cmulab_elan_extension/releases/download/v0.0.1/test_file.wav)
 
-`ELAN_6-3/bin/ELAN allosaurus-elan/test/allosaurus.wav &`
+`ELAN_6-3/bin/ELAN Downloads/test_file.wav &`
 
 Switch to the "Recognizers" tab and then select "CMU Linguistic Annotation Backend" from the Recognizer dropdown list at the top and then click the "Start" button.
 If this is your first time using this plugin, you will be prompted to login to the [CMULAB backend server](https://github.com/neulab/cmulab) and get an access token (you can create an account or simply login with an existing Google account).
