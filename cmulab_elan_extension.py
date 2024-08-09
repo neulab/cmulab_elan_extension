@@ -97,9 +97,9 @@ def get_auth_token(server_url):
                 if not check_auth_token(auth_token, server_url):
                     auth_token = ""
     if not auth_token:
-        layout = [[sg.Text('Click link below to get your access token')],
+        layout = [[sg.Text('Click link below to get your auth_token')],
                   [sg.Text(server_url + "/annotator/get_auth_token/", text_color='blue', enable_events=True, key='-LINK-')],
-                  [sg.Text("Please enter your access token here")], [sg.Input()], [sg.Button('OK')]]
+                  [sg.Text("Please enter your auth_token here")], [sg.Input()], [sg.Button('OK')]]
         window = sg.Window('Authorization required!', layout, finalize=True)
         window['-LINK-'].set_cursor(cursor='hand1')
         while True:
